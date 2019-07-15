@@ -377,7 +377,9 @@ You are given an input in a JSON format; each line contains a JSON with the foll
 
 ```
 cat data.txt |
-    jq -r '[.class,.feature1,.feature2] | @csv' | grep -E '^(1|10),' | sort -n > out.txt
+    jq -r '[.class,.feature1,.feature2] | @csv' |
+    grep -E '^(2|10),' |
+    sort -n > out.txt
 ```
 
 </p>
@@ -406,6 +408,7 @@ cat data.txt |
 ```
 
 Alternatively, you could -- instead of `tr | cut` -- also use `awk '{print $2}'` (`awk` handles multiple spaces as a single field separator out of the box).
+
 </p>
 </details>
 
@@ -421,7 +424,9 @@ Find all unique IDs (numerical) with factors greater or equal to 1.5. Output eac
 <details><summary>Solution</summary><p>
 
 ```
-cat factors.txt | awk '{if($2 > 1.5 && $2 > data[$1]) { data[$1]=$2 } } END { for (k in data) { printf "%4d   %.03f\n", k, data[k] } }' | sort -grk2
+cat factors.txt |
+    awk '{if($2 > 1.5 && $2 > data[$1]) { data[$1]=$2 } } END { for (k in data) { printf "%4d   %.03f\n", k, data[k] } }' |
+    sort -grk2
 ```
 
 </p>

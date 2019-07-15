@@ -374,10 +374,12 @@ Data generators are provided inside `generators/`.
 You are given an input in a JSON format; each line contains a JSON with the following structure: `{}`. Extract `feature1,feature2,class` and transform the input to a CSV format. Select only lines with class either `2` or `10`. Sort the output by class and save it to a file.
 
 <details><summary>Solution</summary><p>
+
 ```
 cat data.txt |
     jq -r '[.class,.feature1,.feature2] | @csv' | grep -E '^(1|10),' | sort -n > out.txt
 ```
+
 </p>
 </details>
 
@@ -390,6 +392,7 @@ You are given a list of labeled samples (`classes = [0,1]`). Find out how many o
 
 
 <details><summary>Solution</summary><p>
+
 ```
 cat data.txt |
     tr -s ' ' |
@@ -416,9 +419,11 @@ Find all unique IDs (numerical) with factors greater or equal to 1.5. Output eac
 
 
 <details><summary>Solution</summary><p>
+
 ```
 cat factors.txt | awk '{if($2 > 1.5 && $2 > data[$1]) { data[$1]=$2 } } END { for (k in data) { printf "%4d   %.03f\n", k, data[k] } }' | sort -grk2
 ```
+
 </p>
 </details>
 
@@ -432,6 +437,7 @@ Try doing this both using `fswatch`/`inotify` as well as manually.
 
 
 <details><summary>Solution</summary><p>
+
 ```
 file="file.log"
 while true; do
@@ -445,5 +451,6 @@ while true; do
 	sleep 1
 done
 ```
+
 </p>
 </details>

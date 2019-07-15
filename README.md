@@ -8,6 +8,10 @@
 
 ### Prerequisites
 
+#### Git
+
+If you don't have Git installed on your system, you should follow the official installation guide (<https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>).
+
 #### Mac
 
 Brew: <https://brew.sh/>
@@ -23,7 +27,6 @@ Package manager distributed by your OS (apt, pacman+AUR, etc.)
 
 
 **Note regarding shells**: You should preferably have `sh` or `bash` or `zsh` installed on your systems. For the puroposes of this tutorial, try avoiding `fish` due to a slightly different syntax.
-
 
 
 ### PyEnv
@@ -78,7 +81,7 @@ Pyenv allows you to have multiple python versions installed on your system and i
 
 
 
-Create a new directory -- you will use it for you Summer School projects.
+Create a new directory -- you will use it for your Summer School projects.
 
 ```
 ~
@@ -171,7 +174,7 @@ pipenv install jupyter numpy scikit-learn pandas scipy matplotlib requests
 
 **Note for Windows users**: you will either have to access the Ubuntu Sub System or install <https://www.cygwin.com/>.
 
-**Note**: we'll be trying out the following commands: `cat`, `awk`, `tr`, `cut`, `jq`, `sort`, `uniq`, `gzip`, `wc`. You should check if they are installed on your system (`which <command>`) and install them using `apt/pacman/ if you don't have them yet.
+**Note**: we'll be trying out the following commands: `cat`, `awk`, `tr`, `cut`, `jq`, `sort`, `uniq`, `gzip`, `wc`. You should check if they are installed on your system (`which <command>`) and install them using `apt/pacman/...j` if you don't have them yet.
 
 
 
@@ -225,6 +228,140 @@ We've prepared three simple tasks for you which should provide you with an oport
 
 
 
+### Most useful commands
+
+#### `grep`
+
+`grep` can be used to filter lines based on their content. For example, if you want to only select lines that contain the word "foo", you could do:
+
+```
+echo "
+foo,1
+bar,2
+baz,3
+" | grep "foo"
+```
+
+Obviously, this doesn't work if you have "foobar" in one of the lines. In such cases it's useful to know how your data looks like -- in our case, we're only interested in the line if the word "foo" appears in the first column:
+
+```
+echo "
+foo,1
+foobar,1
+foobar,foobar
+bar,2
+baz,3
+" | grep "^foo,"
+```
+
+If you only want to select examples that _do not_ include "foo", pass `-v` flag.
+
+```
+echo "
+foo,1
+bar,2
+" | grep -v "^foo,"
+```
+
+For case-insnsitive matching, pass the `-i` flag.
+
+```
+echo "
+foo,1
+FOO,3
+bar,2
+" | grep -i "^FOO,"
+```
+
+
+#### `sort`
+
+`sort` internally uses a variation of bucket sort so it can work with data of arbitrary sizes.
+
+
+```
+echo "
+3
+20
+1
+0
+a" | sort
+```
+
+If you're only sorting numbers, you should pass either `-g` or `-n` flag:
+
+```
+echo "
+3
+20
+1
+0" | sort -n
+```
+
+You can select the column used as a sorting key by specifing `-k <n>` flag, where `n` is the index of the column.
+
+```
+echo "
+1,3
+2,20
+3,1
+4,0" | sort -k2 -t ',' -n
+```
+
+#### `uniq`
+
+`uniq` only select unique rows from the output. Input must (on most systems) be sorted.
+
+```
+echo "1
+1
+2" | sort | uniq
+```
+
+If you pass `-c` as a flag, `uniq` will also report the number of occurances.
+
+```
+echo "a
+b
+a" | sort | uniq -c
+```
+
+#### `head` and `tail`
+
+`head` and `tail` report the first and last `n` lines in a file, respectively.
+
+```
+echo "a
+b
+a" | tail -n 1
+```
+
+#### `tr`
+
+`tr` is used for substituting characters in the input.
+
+
+```
+echo "string    with many    spaces" | tr -s ' '
+```
+
+```
+echo "a b c d e f" | tr ' ' '_'
+```
+
+```
+echo "a b c d e f" | tr -d ' '
+```
+
+#### `cut`
+
+`cut` allows you to split and select columns from the input text.
+
+```
+echo "1 2 3 4 5 6 7 8 9 10" | cut -d ' ' -f1,2 -f5,7 -f10,10
+```
+
+
 
 
 ### Tasks
@@ -232,38 +369,42 @@ We've prepared three simple tasks for you which should provide you with an oport
 Data generators are provided inside `generators/`.
 
 
-
 #### Task 1
 
-You are given a list of labeled samples (`classes = [0,1]`). Find out how many of examples belong to each of the classes. If number of examples in class 1 is greater than the number of examples in class 2, print `ERROR`.
+You are given an input in a JSON format; each line contains a JSON with the following structure: `{}`. Extract `feature1,feature2,class` and transform the input to a CSV format. Select only lines with class either `2` or `10`. Sort the output by class and save it to a file.
 
-
-
+<details><summary>Solution</summary><p>
 ```
-cat data.txt | tr -s ' ' | cut -d ' ' -f 2,2 | sort | uniq -c | sort -n | tail -n 1 | grep 1
+cat data.txt |
+    jq -r '[.class,.feature1,.feature2] | @csv' | grep -E '^(1|10),' | sort -n > out.txt
 ```
-
-Alternatively, you could -- instead of `tr | cut` -- also use `awk '{print $2}'` (`awk` handles multiple spaces as a single field separator out of the box).
-
-
+</p>
+</details>
 
 
 
 #### Task 2
 
-Find all unique IDs (numerical) with factors greater or equal to 1.5. Output each in name and factor in CSV format. Preferably, all IDs will be unique with maximum factors for the ID. Alternatively, output numerically sorted IDs.
+You are given a list of labeled samples (`classes = [0,1]`). Find out how many of examples belong to each of the classes. If number of examples in class 1 is greater than the number of examples in class 0, print `ERROR`.
 
 
 
+<details><summary>Solution</summary><p>
 ```
-cat data.txt | awk '{if($2 > data[$1]) { data[$1]=$2 } } END { for (k in data) { printf "%4d   %.03f\n", k, data[k] } }'
+cat data.txt |
+    tr -s ' ' |
+    cut -d ' ' -f 2,2 |
+    sort |
+    uniq -c |
+    sort -n |
+    tee /dev/tty |
+    tail -n 1 |
+    grep 0 >> /dev/null && echo "ERROR"
 ```
 
-OR
-
-```
-cat data.txt | sort -n
-```
+Alternatively, you could -- instead of `tr | cut` -- also use `awk '{print $2}'` (`awk` handles multiple spaces as a single field separator out of the box).
+</p>
+</details>
 
 
 
@@ -271,12 +412,26 @@ cat data.txt | sort -n
 
 #### Task 3
 
+Find all unique IDs (numerical) with factors greater or equal to 1.5. Output each in name and factor in a the following format: `ID,factor`. Preferably, all IDs will be unique with only them maximum factors displayed. Sort them in descending order by the factor column.
+
+
+<details><summary>Solution</summary><p>
+```
+cat factors.txt | awk '{if($2 > 1.5 && $2 > data[$1]) { data[$1]=$2 } } END { for (k in data) { printf "%4d   %.03f\n", k, data[k] } }' | sort -grk2
+```
+</p>
+</details>
+
+
+#### Task 4
+
 Write a script that monitors changes in an arbitrary text file (e.g. `file.log`) and when it changes `tail`s the last line of `file.log` to `changes.log` along with the current time. At the same time (using the same script or a different one) also save system's free memory to `mem.log` every second.
 
 Try doing this both using `fswatch`/`inotify` as well as manually.
 
 
 
+<details><summary>Solution</summary><p>
 ```
 file="file.log"
 while true; do
@@ -290,3 +445,5 @@ while true; do
 	sleep 1
 done
 ```
+</p>
+</details>
